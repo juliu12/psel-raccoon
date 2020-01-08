@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[10]:
+
+
+import pandas as pd
+import requests
+import json
+
+
+# In[2]:
+
+
+req = requests.get('https://us-central1-psel-clt-ti-junho-2019.cloudfunctions.net/psel_2019_get?fbclid=IwAR0Ax9FMx8SPgkYh8vwMbym5EnRYclx-QRcuwfoOMGbMGw6Wt03j-bbvpv8')
+
+
+# In[3]:
+
+
+con = json.loads(req.content)
+
+
+# In[4]:
+
+
+con.keys()
+
+
+# In[5]:
+
+
+len(con['posts'])
+
+
+# In[6]:
+
+
+lista_post_id = []
+
+for a in range (len(con['posts'])):
+    lista_post_id.append(con['posts'][a]['post_id'])
+
+set(lista_post_id)
+
+
+# In[8]:
+
+
+con['posts']
+
+
+# In[11]:
+
+
+con['posts'][0].keys()
+
+
+# In[44]:
+
+
+df = pd.DataFrame([], columns = ['media', 'post_id', 'title', 'product_id', 'price', 'date', 'likes'])
+
+
+# In[45]:
+
+
+for n in range(len(con['posts'])):    
+    df_aux = pd.DataFrame([(
+                            con['posts'][n]['media'],
+                            con['posts'][n]['post_id'],
+                            con['posts'][n]['title'],
+                            con['posts'][n]['product_id'],
+                            con['posts'][n]['price'],
+                            con['posts'][n]['date'],
+                            con['posts'][n]['likes'])    
+                          ], columns = ['media', 'post_id', 'title', 'product_id', 'price', 'date', 'likes'])
+    df = df.append(df_aux)
+    
+df = df.reset_index()
+del df['index']
+
+
+# In[46]:
+
+
+df
+
+
+# # Verificando se há ids repetidos
+
+# In[56]:
+
+
+assert(len(df) == len(set(df.post_id))), 'Há ids repetidos na base'
+
+
+# ###  IDs dos produtos que contém "promoção" no título e seus respectivos preços para todas as mídias. O resultado deve estar ordenado por preço e depois ID, de forma CRESCENTE. OBS: Não pode conter IDs de produtos repetidos.
+# 
+
+# In[57]:
+
+
+df[['price', 'post_id']][df.title.str.contains('promocao')].sort_values(['price', 'post_id'])
+
+
+# ###  IDs dos posts e preços dos produtos para as postagens com mais de 700 likes na mídia "instagram_cpc". O resultado deve estar ordenado por preço e depois ID de forma CRESCENTE.
+
+# In[58]:
+
+
+set(df.media)
+
+
+# In[61]:
+
+
+df[['price', 'post_id']][(df.media == 'instagram_cpc') & (df.likes > 700)].sort_values(['price', 'post_id'])
+
+
+# ### Somatório de likes no mês de maio de 2019 para todas as mídias pagas (google_cpc, facebook_cpc, instagram_cpc)
+
+# In[68]:
+
+
+df['likes'][df.date.str.contains('/05/')].sum()
+
+
+# In[70]:
+
+
+sum(df['likes'][df.date.str.contains('/05/')])
+
+
+# In[ ]:
+
+
+
+Data = {'Product':['media', 'post_id', 'title', 'product_id', 'price', 'date', 'likes'}
+
+df = DataFrame (Dados, colunas = ['Produto','Media,'Post_Id','Title','Product_Id','Price','Date','likes'])
+
+Export = df.to_json (r' C:\Kiano\MeusDocumentos\Export_DataFrame.json')
